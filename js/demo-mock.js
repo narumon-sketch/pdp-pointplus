@@ -65,6 +65,21 @@ DEMO.data = {
   ]
 };
 
+DEMO.teacherDash = function () { return { learningArea: 'วิทยาศาสตร์และเทคโนโลยี', academicYear: '2568', term: '1', activityCount: 3, pendingCount: 27, applicantCount: 63 }; };
+DEMO.adminDash = function () {
+  return {
+    academicYear: '2568', term: '1', targetHHMM: '7:30',
+    userCounts: { student: 312, teacher: 8, admin: 2, graduated: 45 },
+    activityCount: 18, activityByArea: { 'วิทยาศาสตร์และเทคโนโลยี': 6, 'คณิตศาสตร์': 4, 'ภาษาไทย': 3, 'สังคมศึกษา ศาสนาและวัฒนธรรม': 5 },
+    pendingTotal: 41,
+    reachedByGrade: [
+      { gradeLevel: 'ม.1', total: 52, reached: 47, notReached: 5, percent: 90 },
+      { gradeLevel: 'ม.2', total: 48, reached: 30, notReached: 18, percent: 63 },
+      { gradeLevel: 'ม.3', total: 50, reached: 41, notReached: 9, percent: 82 }
+    ]
+  };
+};
+
 // ---------- Mock API ----------
 const API = {
   async call(action, params = {}) {
@@ -78,18 +93,15 @@ const API = {
       case 'listRegistrations': return d.regsOfActivity;
       case 'listLearningAreas': return d.areas;
       case 'listUsers': return d.users;
-      case 'teacherDashboard': return { learningArea: 'วิทยาศาสตร์และเทคโนโลยี', academicYear: '2568', term: '1', activityCount: 3, pendingCount: 27, applicantCount: 63 };
-      case 'adminDashboard': return {
-        academicYear: '2568', term: '1', targetHHMM: '7:30',
-        userCounts: { student: 312, teacher: 8, admin: 2, graduated: 45 },
-        activityCount: 18, activityByArea: { 'วิทยาศาสตร์และเทคโนโลยี': 6, 'คณิตศาสตร์': 4, 'ภาษาไทย': 3, 'สังคมศึกษา ศาสนาและวัฒนธรรม': 5 },
-        pendingTotal: 41,
-        reachedByGrade: [
-          { gradeLevel: 'ม.1', total: 52, reached: 47, notReached: 5, percent: 90 },
-          { gradeLevel: 'ม.2', total: 48, reached: 30, notReached: 18, percent: 63 },
-          { gradeLevel: 'ม.3', total: 50, reached: 41, notReached: 9, percent: 82 }
-        ]
-      };
+      case 'teacherDashboard': return DEMO.teacherDash();
+      case 'adminDashboard': return DEMO.adminDash();
+      case 'bootstrap': {
+        const o = { user: d.me[DEMO.role], settings: d.settings };
+        if (DEMO.role === 'student') o.hours = d.myHours;
+        else if (DEMO.role === 'teacher') o.dashboard = DEMO.teacherDash();
+        else if (DEMO.role === 'admin') o.dashboard = DEMO.adminDash();
+        return o;
+      }
       case 'hoursReport': return {
         academicYear: '2568', term: '1', targetHHMM: '7:30',
         rows: [

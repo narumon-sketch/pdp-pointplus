@@ -20,9 +20,18 @@ const App = {
   async onAuth(profile) {
     if (!profile) return App.showLogin();
     try {
-      const [user, settings] = await Promise.all([API.call('me'), API.call('getSettings')]);
-      App.state.user = user;
-      App.state.settings = settings;
+      // เรียกรอบเดียวได้ทั้ง user + settings + ข้อมูล dashboard
+      const boot = await API.call('bootstrap');
+      App.state.user = boot.user;
+      App.state.settings = boot.settings;
+
+      // ป้อน cache ให้หน้าแรกเรนเดอร์ได้ทันทีโดยไม่ยิง server ซ้ำ
+      const primed = { me: boot.user, getSettings: boot.settings };
+      if (boot.user.role === 'admin') primed.adminDashboard = boot.dashboard;
+      else if (boot.user.role === 'teacher') primed.teacherDashboard = boot.dashboard;
+      else if (boot.user.role === 'student') primed.myHours = boot.hours;
+      API.prime(primed);
+
       App.showApp();
     } catch (e) {
       UI.toast(e.message, 'danger');

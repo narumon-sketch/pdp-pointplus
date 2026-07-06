@@ -3,6 +3,10 @@
  * POST body เป็น JSON แต่ Content-Type text/plain เพื่อเลี่ยง CORS preflight (ADR-0001)
  */
 const API = {
+  // cache แบบใช้ครั้งเดียว ป้อนจาก bootstrap เพื่อให้หน้าแรกไม่ต้องยิง server ซ้ำ
+  _primed: {},
+  prime(map) { API._primed = map || {}; },
+
   /**
    * เรียก action ไปยัง backend
    * @param {string} action
@@ -10,6 +14,12 @@ const API = {
    * @param {boolean} silent - true = ไม่โชว์ loading overlay (ใช้กับ polling)
    */
   async call(action, params = {}, silent = false) {
+    // ถ้ามีข้อมูลที่ป้อนไว้ล่วงหน้า (จาก bootstrap) คืนทันที ไม่ต้องเรียก server
+    if (Object.prototype.hasOwnProperty.call(API._primed, action)) {
+      const cached = API._primed[action];
+      delete API._primed[action];
+      return cached;
+    }
     if (!silent) UI.showLoading();
     try {
       const idToken = Auth.getIdToken();
