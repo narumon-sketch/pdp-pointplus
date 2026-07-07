@@ -73,6 +73,7 @@ const TeacherView = {
           <button class="btn btn-sm btn-outline-primary" data-applicants="${a.activityId}"><i class="bi bi-people"></i> ผู้สมัคร</button>
           ${canEdit ? `<button class="btn btn-sm btn-outline-secondary" data-edit="${a.activityId}"><i class="bi bi-pencil"></i></button>` : ''}
           ${a.status === 'open' ? `<button class="btn btn-sm btn-outline-warning" data-close="${a.activityId}"><i class="bi bi-lock"></i></button>` : ''}
+          ${canEdit ? `<button class="btn btn-sm btn-outline-danger" data-del="${a.activityId}"><i class="bi bi-trash"></i></button>` : ''}
         </td>
       </tr>`;
     }).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">ยังไม่มีกิจกรรม</td></tr>';
@@ -81,11 +82,18 @@ const TeacherView = {
     tbody.querySelectorAll('[data-applicants]').forEach(b => b.addEventListener('click', () => TeacherView.applicants(b.dataset.applicants)));
     tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => TeacherView._openForm(list.find(x => x.activityId === b.dataset.edit))));
     tbody.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => TeacherView._close(b.dataset.close)));
+    tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => TeacherView._delete(b.dataset.del)));
   },
 
   async _close(activityId) {
     if (!confirm('ปิดรับสมัครกิจกรรมนี้?')) return;
     try { await API.call('closeActivity', { activityId }); UI.toast('ปิดกิจกรรมแล้ว', 'success'); TeacherView.activities(true); }
+    catch (e) { UI.toast(e.message, 'danger'); }
+  },
+
+  async _delete(activityId) {
+    if (!confirm('ลบกิจกรรมนี้? (ลบได้เฉพาะกิจกรรมที่ยังไม่มีผู้สมัคร)')) return;
+    try { await API.call('deleteActivity', { activityId }); UI.toast('ลบกิจกรรมแล้ว', 'success'); TeacherView.activities(true); }
     catch (e) { UI.toast(e.message, 'danger'); }
   },
 
