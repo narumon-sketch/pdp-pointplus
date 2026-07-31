@@ -8,6 +8,7 @@ const App = {
 
   init() {
     document.getElementById('btn-signout').addEventListener('click', () => Auth.signOut());
+    App._warmUpBackend(); // อุ่น Apps Script instance ระหว่างผู้ใช้กำลัง login (ลด cold start)
     // รอ GIS โหลดเสร็จก่อน init
     const wait = setInterval(() => {
       if (window.google && google.accounts && google.accounts.id) {
@@ -15,6 +16,18 @@ const App = {
         Auth.init(App.onAuth);
       }
     }, 100);
+  },
+
+  /** ยิง ping เบา ๆ เพื่อปลุก backend ล่วงหน้า (ไม่รอผล, ไม่โชว์ loading) */
+  _warmUpBackend() {
+    try {
+      fetch(APP_CONFIG.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: '{"action":"ping"}',
+        keepalive: true
+      }).catch(() => {});
+    } catch (e) { /* เงียบไว้ — เป็นแค่การอุ่นเครื่อง */ }
   },
 
   async onAuth(profile) {
@@ -41,6 +54,7 @@ const App = {
 
   showLogin() {
     App.stopPoll();
+    API.clearCache(); // กันข้อมูลผู้ใช้เดิมค้างเมื่อออกจากระบบ/token หมดอายุ
     document.getElementById('app-view').classList.add('d-none');
     document.getElementById('login-view').classList.remove('d-none');
   },
