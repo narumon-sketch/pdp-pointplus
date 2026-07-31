@@ -52,11 +52,11 @@ const StudentView = {
       App.setContent(`
         <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
           <h4 class="mb-0">กิจกรรมที่เปิดรับ</h4>
-          <div class="d-flex gap-2">
+          <div class="toolbar">
             <input id="act-search" class="form-control form-control-sm" placeholder="ค้นหา..." style="width:180px">
             <select id="act-area" class="form-select form-select-sm" style="width:180px"><option value="">ทุกกลุ่มสาระ</option></select>
             <button id="act-refresh" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button>
-          </div>
+          </div><!-- /toolbar -->
         </div>
         <div id="act-list" class="row g-3"></div>`);
       document.getElementById('act-search').addEventListener('input', StudentView._renderActivities);

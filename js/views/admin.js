@@ -30,7 +30,7 @@ const AdminView = {
         <div class="col-lg-7"><div class="card p-3">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">นักเรียนถึงเป้า แยกระดับชั้น</h6>
-            <div class="d-flex gap-2">
+            <div class="toolbar">
               <select id="hours-class" class="form-select form-select-sm" style="width:120px"><option value="">ทุกห้อง</option></select>
               <button class="btn btn-sm btn-outline-secondary" id="btn-export-hours"><i class="bi bi-file-earmark-excel me-1"></i>Export</button>
             </div>
@@ -89,7 +89,7 @@ const AdminView = {
     App.setContent(`
       <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
         <h4 class="mb-0">จัดการผู้ใช้</h4>
-        <div class="d-flex gap-2">
+        <div class="toolbar">
           <input id="u-search" class="form-control form-control-sm" placeholder="ค้นหา..." style="width:160px">
           <select id="u-role" class="form-select form-select-sm" style="width:130px">
             <option value="">ทุก role</option><option value="student">นักเรียน</option>
