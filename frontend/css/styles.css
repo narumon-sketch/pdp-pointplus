@@ -1,0 +1,132 @@
+/* styles.css — ธีม PDP PointPlus (ดำ + พาสเทล + ม่วง) ถอดจากไฟล์ดีไซน์
+   รีธีมด้วย CSS ล้วน + override ตัวแปร Bootstrap ไม่แตะ logic ที่ต่อ backend */
+
+:root {
+  /* พาเลตจากดีไซน์ */
+  --brand-black:  #000000;
+  --brand-purple: #952fc6;
+  --brand-purple-dark: #4d1368;
+  --brand-pink:   #f9d4ff;
+  --brand-yellow: #feeeb2;
+  --brand-cream:  #FEEFC6;
+  --brand-lilac:  #ecd7ff;
+  --cream-bg:     #fbf4e1;   /* พื้นหลังครีม */
+  --card-ivory:   #fffdf6;   /* การ์ดไอวอรี่ */
+  --ink:    #1a1a1a;
+  --muted:  #757575;
+  --line:   #ececec;
+  --surface:#ffffff;
+  --surface-2:#f7f7f7;
+
+  /* override Bootstrap */
+  --bs-primary: #952fc6;
+  --bs-primary-rgb: 149,47,198;
+  --bs-link-color: #952fc6;
+  --bs-link-hover-color: #4d1368;
+  --bs-body-font-family: 'Sarabun','Segoe UI',Tahoma,sans-serif;
+  --bs-body-color: #1a1a1a;
+}
+
+body {
+  font-family: 'Sarabun','Segoe UI',Tahoma,sans-serif;
+  background: var(--cream-bg);
+  color: var(--ink);
+}
+
+/* ---- ปุ่ม / ลิงก์ = ม่วง ---- */
+.btn-primary {
+  --bs-btn-bg: var(--brand-purple); --bs-btn-border-color: var(--brand-purple);
+  --bs-btn-hover-bg: var(--brand-purple-dark); --bs-btn-hover-border-color: var(--brand-purple-dark);
+  --bs-btn-active-bg: var(--brand-purple-dark); --bs-btn-active-border-color: var(--brand-purple-dark);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--brand-purple); --bs-btn-border-color: var(--brand-purple);
+  --bs-btn-hover-bg: var(--brand-purple); --bs-btn-hover-border-color: var(--brand-purple);
+  --bs-btn-active-bg: var(--brand-purple); --bs-btn-active-border-color: var(--brand-purple);
+}
+.bg-primary { background-color: var(--brand-purple) !important; }
+.text-primary { color: var(--brand-purple) !important; }
+.text-bg-primary { background-color: var(--brand-purple) !important; color: #fff !important; }
+.text-bg-info { background-color: var(--brand-pink) !important; color: var(--brand-purple-dark) !important; }
+a { color: var(--brand-purple); }
+
+.btn { border-radius: 2px; font-weight: 600; }
+.form-control, .form-select { border-radius: 2px; }
+.form-control:focus, .form-select:focus {
+  border-color: var(--brand-purple);
+  box-shadow: 0 0 0 .2rem rgba(149,47,198,.2);
+}
+
+/* ---- Navbar = ม่วงเข้ม ---- */
+.navbar.bg-primary { background-color: var(--brand-purple-dark) !important; }
+.navbar-brand { letter-spacing: .3px; }
+.navbar-nav .nav-link.active { font-weight: 800; text-decoration: none; color: var(--brand-yellow) !important; }
+
+/* ---- Login = พื้นดำ การ์ดเข้ม ---- */
+#login-view { background: var(--cream-bg); }
+.login-card {
+  max-width: 400px; width: 100%;
+  background: var(--card-ivory); color: var(--ink);
+  border: 1px solid #ecdfc0; border-radius: 6px;
+}
+.login-card .display-3 { color: var(--brand-purple) !important; }
+.login-card h1 { color: var(--ink); }
+.login-card .text-muted { color: var(--muted) !important; }
+.login-logo { width: 110px; height: auto; object-fit: contain; display: block; margin: 0 auto; }
+.navbar-logo { height: 34px; width: auto; border-radius: 4px; background: #fff; padding: 2px; }
+
+/* ---- การ์ดเนื้อหา = ขาว มุมคมสไตล์ flat ---- */
+.card {
+  border: 1px solid #efe4c8; border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(120,90,20,.08);
+  background: var(--card-ivory);
+}
+/* ไล่โทนครีมอุ่นให้การ์ดเนื้อหาที่วางต่อกันใน #content */
+#content > .card:nth-of-type(3n+2) { background: #fbf1d9; }
+#content > .card:nth-of-type(3n+3) { background: #fcefe0; }
+/* ตารางในการ์ดพาสเทล: พื้นแถวขาวโปร่งเพื่อให้อ่านง่าย */
+.card .table { --bs-table-bg: rgba(255,255,255,.6); }
+.card .table-light { --bs-table-bg: rgba(255,255,255,.92); }
+h4, h5, h6 { color: var(--ink); }
+
+/* ---- Loading overlay ---- */
+#loading-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center; z-index: 1090;
+}
+
+/* ---- Stat cards = ไล่สีพาสเทลอัตโนมัติ ---- */
+.stat-card { border: 1px solid rgba(120,90,20,.08); border-radius: 3px; box-shadow: 0 2px 8px rgba(120,90,20,.1); }
+.stat-card .stat-value { font-size: 2.1rem; font-weight: 800; line-height: 1; color: var(--brand-purple-dark) !important; }
+.stat-card .stat-icon  { font-size: 2rem; opacity: .35; color: var(--brand-purple) !important; }
+.stat-card .text-muted { color: #6a5570 !important; }
+/* วนสีการ์ดตามลำดับคอลัมน์ */
+.row > div:nth-child(4n+1) .stat-card { background: #fde8b5; } /* เหลืองครีม */
+.row > div:nth-child(4n+2) .stat-card { background: #fbd9c4; } /* พีช */
+.row > div:nth-child(4n+3) .stat-card { background: #f6e6cf; } /* แทนอ่อน */
+.row > div:nth-child(4n+4) .stat-card { background: #f5ddd0; } /* โรสอ่อน */
+
+/* ---- Progress = ม่วง ---- */
+.hours-progress { height: 1.6rem; border-radius: 4px; background: #eee4f5; }
+.progress-bar { background-color: var(--brand-purple); }
+.progress-bar.bg-success { background-color: #2eb872 !important; }
+
+/* ---- Activity card ---- */
+.activity-card { transition: transform .12s ease, box-shadow .12s ease; }
+.activity-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+.activity-card .card-title { font-size: 1.05rem; font-weight: 700; }
+.activity-meta { font-size: 0.85rem; color: var(--muted); }
+
+/* ---- ตาราง ---- */
+.table { --bs-table-bg: transparent; }
+.table > :not(caption) > * > * { color: var(--ink); }
+.table-light { --bs-table-bg: #f3ecfa; }
+.table-responsive { border-radius: 3px; }
+
+/* ---- Badge สถานะ (คงความหมายสี) ---- */
+.badge { font-weight: 600; border-radius: 2px; }
+
+@media print {
+  body { background: #fff; }
+  .navbar, #btn-signout, .no-print { display: none !important; }
+}
