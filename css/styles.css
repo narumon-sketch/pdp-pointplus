@@ -117,6 +117,14 @@ h4, h5, h6 { color: var(--ink); }
 .activity-card .card-title { font-size: 1.05rem; font-weight: 700; }
 .activity-meta { font-size: 0.85rem; color: var(--muted); }
 
+/* ---- แถบเครื่องมือ (ค้นหา/ฟิลเตอร์/ปุ่ม) — responsive กันล้นจอมือถือ ---- */
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+@media (max-width: 575.98px) {
+  /* จอเล็ก: ช่องค้นหา/ตัวเลือกยืดเต็มและตัดบรรทัดเอง แทนความกว้างตายตัว */
+  .toolbar > .form-control,
+  .toolbar > .form-select { flex: 1 1 45%; width: auto !important; }
+}
+
 /* ---- ตาราง ---- */
 .table { --bs-table-bg: transparent; }
 .table > :not(caption) > * > * { color: var(--ink); }
