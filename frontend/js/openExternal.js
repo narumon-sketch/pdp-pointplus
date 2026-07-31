@@ -37,10 +37,13 @@
   } catch (e) { /* URL API ไม่รองรับ — เดินหน้าต่อ */ }
 
   // ---------- LINE ----------
+  // หมายเหตุ: openExternalBrowser=1 ทำงานเชื่อถือได้ก็ต่อเมื่ออยู่ในลิงก์ตั้งแต่ "ตอนแตะจากแชท"
+  // การเติมด้วย JS ภายหลังมักไม่เด้งออก (โดยเฉพาะ iOS) จึงต้องมีหน้าคำแนะนำสำรองเสมอ
   if (isLine) {
-    var sep = href.indexOf('?') === -1 ? '?' : '&';
-    // LINE จะจับ param นี้แล้วเปิดเบราว์เซอร์เริ่มต้นของเครื่องให้เอง
-    window.location.href = href + sep + 'openExternalBrowser=1';
+    var targetL = withExtFlag(href); // ใส่ ext=1 เพื่อกันวนลูป (ถ้า reload กลับมาจะเข้า guard ด้านบน)
+    var sepL = targetL.indexOf('?') === -1 ? '?' : '&';
+    window.location.href = targetL + sepL + 'openExternalBrowser=1';
+    setTimeout(showManualFallback, 1200); // ถ้าไม่เด้งออกภายในเวลานี้ → แสดงคำแนะนำให้กดเอง
     return;
   }
 
@@ -93,8 +96,8 @@
     ].join(';'));
 
     var tip = isIOS
-      ? 'กดปุ่มเมนู <b>•••</b> (มุมขวาบน) แล้วเลือก <b>“เปิดในเบราว์เซอร์”</b> หรือ <b>“Open in Safari”</b>'
-      : 'กดปุ่มเมนู <b>⋮</b> (มุมขวาบน) แล้วเลือก <b>“เปิดในเบราว์เซอร์”</b> หรือ <b>“Open in Chrome”</b>';
+      ? 'แตะไอคอน <b>⋯</b> หรือปุ่ม <b>แชร์</b> (มุมขวาบนหรือล่างของหน้าจอ)<br>แล้วเลือก <b>“เปิดในเบราว์เซอร์”</b> หรือ <b>“Open in Safari”</b>'
+      : 'แตะไอคอน <b>⋮</b> (มุมขวาบน)<br>แล้วเลือก <b>“เปิดในเบราว์เซอร์”</b> หรือ <b>“Open in Chrome”</b>';
 
     box.innerHTML =
       '<div style="font-size:44px;margin-bottom:8px">🌐</div>' +
