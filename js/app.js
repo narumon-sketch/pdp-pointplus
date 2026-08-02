@@ -21,10 +21,9 @@ const App = {
 
   /** รีเฟรชข้อมูล: ล้าง cache (admin ล้างฝั่ง server ด้วย) แล้วโหลดหน้าปัจจุบันใหม่ */
   async _refresh() {
-    try {
-      if (App.state.user && App.state.user.role === 'admin') await API.call('flushCache');
-    } catch (e) { /* ล้าง server ไม่ได้ก็ล้าง client ต่อ */ }
-    API.clearCache();
+    try { await API.call('flushCache'); }        // ล้าง cache ฝั่ง server (ทุก role)
+    catch (e) { /* ล้าง server ไม่ได้ก็ล้าง client ต่อ */ }
+    API.clearCache();                             // ล้าง cache ฝั่ง client
     if (App._currentView) App.navigate(App._currentView); else App.navigateDefault();
     UI.toast('รีเฟรชข้อมูลแล้ว', 'success');
   },
