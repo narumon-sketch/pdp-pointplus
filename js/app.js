@@ -8,6 +8,7 @@ const App = {
 
   init() {
     document.getElementById('btn-signout').addEventListener('click', () => Auth.signOut());
+    document.getElementById('btn-refresh').addEventListener('click', () => App._refresh());
     App._warmUpBackend(); // อุ่น Apps Script instance ระหว่างผู้ใช้กำลัง login (ลด cold start)
     // รอ GIS โหลดเสร็จก่อน init
     const wait = setInterval(() => {
@@ -16,6 +17,16 @@ const App = {
         Auth.init(App.onAuth);
       }
     }, 100);
+  },
+
+  /** รีเฟรชข้อมูล: ล้าง cache (admin ล้างฝั่ง server ด้วย) แล้วโหลดหน้าปัจจุบันใหม่ */
+  async _refresh() {
+    try {
+      if (App.state.user && App.state.user.role === 'admin') await API.call('flushCache');
+    } catch (e) { /* ล้าง server ไม่ได้ก็ล้าง client ต่อ */ }
+    API.clearCache();
+    if (App._currentView) App.navigate(App._currentView); else App.navigateDefault();
+    UI.toast('รีเฟรชข้อมูลแล้ว', 'success');
   },
 
   /** ยิง ping เบา ๆ เพื่อปลุก backend ล่วงหน้า (ไม่รอผล, ไม่โชว์ loading) */
