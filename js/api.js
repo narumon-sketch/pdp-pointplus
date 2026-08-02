@@ -9,7 +9,8 @@ const API = {
 
   // ----- cache ฝั่ง client (ลดการยิง server ซ้ำตอนสลับเมนู) -----
   _cache: new Map(),          // key -> { data, ts }
-  CACHE_TTL_MS: 60000,        // อายุ cache 60 วินาที
+  _refreshing: new Set(),     // key ที่กำลัง refresh เบื้องหลัง (กันยิงซ้ำ)
+  CACHE_TTL_MS: 600000,       // อายุ cache 10 นาที (ตรงกับ backend)
 
   // action ที่เป็นการ "อ่าน" เท่านั้น จึง cache ได้ปลอดภัย (ตรงกับ dispatch ใน Code.gs)
   READ_ACTIONS: new Set([
@@ -40,13 +41,30 @@ const API = {
     const isRead = API.READ_ACTIONS.has(action);
     const key = API._key(action, params);
 
-    // อ่านจาก cache ได้ถ้ายังไม่หมดอายุ และไม่ใช่การเรียกแบบ silent (polling ต้องการข้อมูลสด)
+    // ----- SWR (stale-while-revalidate) สำหรับ read action ปกติ -----
+    // มี cache อยู่ → คืนทันที (ไม่ต้องรอ backend ที่อาจช้า); ถ้าเก่าเกิน TTL ค่อย refresh เงียบ ๆ ไว้ใช้ครั้งหน้า
     if (isRead && !silent) {
       const hit = API._cache.get(key);
-      if (hit && (Date.now() - hit.ts) < API.CACHE_TTL_MS) return hit.data;
+      if (hit) {
+        if ((Date.now() - hit.ts) >= API.CACHE_TTL_MS) API._bgRefresh(action, params, key);
+        return hit.data;
+      }
     }
 
+    // ไม่มี cache → ต้องยิง backend จริง (รอผล)
     if (!silent) UI.showLoading();
+    try {
+      const data = await API._fetch(action, params);
+      if (isRead) API._cache.set(key, { data, ts: Date.now() });
+      else if (action !== 'ping') API._cache.clear();   // mutation → ล้าง cache
+      return data;
+    } finally {
+      if (!silent) UI.hideLoading();
+    }
+  },
+
+  /** ยิง backend จริง (ชั้น network ล้วน ๆ) — คืน data หรือโยน error */
+  async _fetch(action, params) {
     try {
       const idToken = Auth.getIdToken();
       const body = JSON.stringify(Object.assign({ action, idToken }, params));
@@ -58,20 +76,36 @@ const API = {
       const json = await res.json();
       if (!json.ok) {
         const err = json.error || { message: 'เกิดข้อผิดพลาด' };
-        // token หมดอายุ/ไม่ผ่าน → ให้ login ใหม่
         if (err.status === 401) { Auth.signOut(); }
         throw new Error(err.message || 'เกิดข้อผิดพลาด');
       }
-      // เก็บ cache ถ้าเป็นการอ่าน; ถ้าเป็นการเขียน (mutation) ล้าง cache เพื่อให้ครั้งต่อไปได้ข้อมูลใหม่
-      if (isRead) API._cache.set(key, { data: json.data, ts: Date.now() });
-      else if (action !== 'ping') API._cache.clear();
       return json.data;
     } catch (e) {
       if (e.name === 'TypeError') throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบ API_URL หรืออินเทอร์เน็ต');
       throw e;
-    } finally {
-      if (!silent) UI.hideLoading();
     }
+  },
+
+  /** refresh cache เบื้องหลัง (ไม่โชว์ loading, ไม่รอผล) */
+  _bgRefresh(action, params, key) {
+    if (API._refreshing.has(key)) return;
+    API._refreshing.add(key);
+    API._fetch(action, params)
+      .then(data => API._cache.set(key, { data, ts: Date.now() }))
+      .catch(() => {})
+      .then(() => API._refreshing.delete(key));
+  },
+
+  /**
+   * โหลดข้อมูลหน้าอื่นไว้ล่วงหน้าเบื้องหลัง (เข้า cache) — กดเมนูครั้งแรกจะได้ทันที
+   * @param {Array<{action:string, params?:object}>} list
+   */
+  prefetch(list) {
+    (list || []).forEach(item => {
+      const key = API._key(item.action, item.params || {});
+      if (API._cache.has(key) || API._refreshing.has(key)) return;   // มีแล้ว/กำลังโหลด → ข้าม
+      API._bgRefresh(item.action, item.params || {}, key);
+    });
   },
 
   /** สร้าง cache key จาก action + params */

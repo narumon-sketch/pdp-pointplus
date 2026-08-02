@@ -64,6 +64,18 @@ const App = {
     document.getElementById('app-view').classList.remove('d-none');
     App.renderNav();
     App.navigateDefault();
+    App._prefetchRest();
+  },
+
+  /** โหลดหน้าที่เหลือ (ที่ผู้ใช้น่าจะกดต่อ) ไว้เบื้องหลัง — กดเมนูครั้งแรกจะได้ทันที */
+  _prefetchRest() {
+    const byRole = {
+      teacher: [{ action: 'listActivities' }],
+      student: [{ action: 'listActivities' }, { action: 'myRegistrations' }],
+      admin: [{ action: 'listUsers' }, { action: 'listLearningAreas' }]
+    };
+    // หน่วงเล็กน้อยให้หน้าแรกเรนเดอร์เสร็จก่อน แล้วค่อยโหลดเบื้องหลัง
+    setTimeout(() => API.prefetch(byRole[App.state.user.role] || []), 300);
   },
 
   /** สร้างเมนูตาม role */
