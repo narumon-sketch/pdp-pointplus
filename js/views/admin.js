@@ -4,7 +4,7 @@
 const AdminView = {
   _users: [],
   _uPage: 0,
-  U_PAGE_SIZE: 50,
+  U_PAGE_SIZE: 20,
 
   // ---------- แดชบอร์ด ----------
   async dashboard() {
