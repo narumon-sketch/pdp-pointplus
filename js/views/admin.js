@@ -3,6 +3,8 @@
  */
 const AdminView = {
   _users: [],
+  _uPage: 0,
+  U_PAGE_SIZE: 50,
 
   // ---------- แดชบอร์ด ----------
   async dashboard() {
@@ -100,16 +102,19 @@ const AdminView = {
         </div>
       </div>
       <div class="card p-0"><div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 table-stack">
           <thead class="table-light"><tr><th>ชื่อ</th><th>อีเมล</th><th>Role</th><th>กลุ่ม/ชั้น</th><th>สถานะ</th><th></th></tr></thead>
           <tbody id="u-tbody"></tbody>
         </table>
-      </div></div>`);
+      </div></div>
+      <div id="u-pager" class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 small"></div>`);
     document.getElementById('u-new').addEventListener('click', () => AdminView._userForm());
     document.getElementById('u-import').addEventListener('click', () => AdminView._importForm());
-    document.getElementById('u-search').addEventListener('input', AdminView._renderUsers);
-    document.getElementById('u-role').addEventListener('change', AdminView._renderUsers);
+    // ค้นหา/กรอง → กลับไปหน้าแรกเสมอ
+    document.getElementById('u-search').addEventListener('input', () => { AdminView._uPage = 0; AdminView._renderUsers(); });
+    document.getElementById('u-role').addEventListener('change', () => { AdminView._uPage = 0; AdminView._renderUsers(); });
     AdminView._users = await API.call('listUsers');
+    AdminView._uPage = 0;
     AdminView._renderUsers();
   },
 
@@ -121,14 +126,23 @@ const AdminView = {
       if (q && !(`${u.fullName} ${u.email} ${u.studentNo}`.toLowerCase().includes(q))) return false;
       return true;
     });
+    // แบ่งหน้า: กรองทั้งหมดใน memory แต่วาดเฉพาะ 50 คนของหน้าปัจจุบัน (ลดภาระ render)
+    const SIZE = AdminView.U_PAGE_SIZE;
+    const total = list.length;
+    const pages = Math.max(1, Math.ceil(total / SIZE));
+    if (AdminView._uPage >= pages) AdminView._uPage = pages - 1;
+    if (AdminView._uPage < 0) AdminView._uPage = 0;
+    const start = AdminView._uPage * SIZE;
+    const pageList = list.slice(start, start + SIZE);
+
     const tbody = document.getElementById('u-tbody');
-    tbody.innerHTML = list.length ? list.map(u => `
+    tbody.innerHTML = pageList.length ? pageList.map(u => `
       <tr>
-        <td>${UI.escape(u.fullName || '-')}</td>
-        <td class="small">${UI.escape(u.email)}</td>
-        <td>${App.roleLabel(u.role)}</td>
-        <td>${UI.escape(u.role === 'student' ? (u.gradeLevel + '/' + u.room + ' เลขที่ ' + u.studentNo) : (u.learningArea || '-'))}</td>
-        <td>${u.status === 'active' ? '<span class="badge text-bg-success">ใช้งาน</span>' : `<span class="badge text-bg-secondary">${UI.escape(u.status)}</span>`}</td>
+        <td data-label="ชื่อ">${UI.escape(u.fullName || '-')}</td>
+        <td data-label="อีเมล" class="small">${UI.escape(u.email)}</td>
+        <td data-label="Role">${App.roleLabel(u.role)}</td>
+        <td data-label="กลุ่ม/ชั้น">${UI.escape(u.role === 'student' ? (u.gradeLevel + '/' + u.room + ' เลขที่ ' + u.studentNo) : (u.learningArea || '-'))}</td>
+        <td data-label="สถานะ">${u.status === 'active' ? '<span class="badge text-bg-success">ใช้งาน</span>' : `<span class="badge text-bg-secondary">${UI.escape(u.status)}</span>`}</td>
         <td class="text-end text-nowrap">
           <button class="btn btn-sm btn-outline-secondary" data-edit="${UI.escape(u.email)}"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-sm btn-outline-danger" data-del="${UI.escape(u.email)}"><i class="bi bi-trash"></i></button>
@@ -137,6 +151,21 @@ const AdminView = {
 
     tbody.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => AdminView._userForm(AdminView._users.find(x => x.email === b.dataset.edit))));
     tbody.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => AdminView._deleteUser(b.dataset.del)));
+
+    // แถบแบ่งหน้า
+    const pager = document.getElementById('u-pager');
+    if (pager) {
+      pager.innerHTML = !total ? '' : `
+        <span class="text-muted">แสดง ${start + 1}–${start + pageList.length} จาก ${total} คน</span>
+        <div class="btn-group">
+          <button id="u-prev" class="btn btn-sm btn-outline-secondary" ${AdminView._uPage === 0 ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> ก่อนหน้า</button>
+          <span class="btn btn-sm btn-light disabled">หน้า ${AdminView._uPage + 1}/${pages}</span>
+          <button id="u-next" class="btn btn-sm btn-outline-secondary" ${AdminView._uPage >= pages - 1 ? 'disabled' : ''}>ถัดไป <i class="bi bi-chevron-right"></i></button>
+        </div>`;
+      const prev = document.getElementById('u-prev'), next = document.getElementById('u-next');
+      if (prev) prev.addEventListener('click', () => { AdminView._uPage--; AdminView._renderUsers(); window.scrollTo(0, 0); });
+      if (next) next.addEventListener('click', () => { AdminView._uPage++; AdminView._renderUsers(); window.scrollTo(0, 0); });
+    }
   },
 
   async _deleteUser(email) {
@@ -261,14 +290,14 @@ const AdminView = {
         <button id="a-new" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>เพิ่มกลุ่มสาระ</button>
       </div>
       <div class="card p-0"><div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 table-stack">
           <thead class="table-light"><tr><th>ชื่อ</th><th>บัญชีกลาง (อีเมล)</th><th>รายชื่อครู</th><th>สถานะ</th><th></th></tr></thead>
           <tbody>${areas.map(a => `
             <tr>
-              <td>${UI.escape(a.name)}</td>
-              <td class="small">${UI.escape(a.accountEmail || '-')}</td>
-              <td class="small">${UI.escape((a.teacherRoster || []).join(', ') || '-')}</td>
-              <td>${a.active ? '<span class="badge text-bg-success">เปิด</span>' : '<span class="badge text-bg-secondary">ปิด</span>'}</td>
+              <td data-label="ชื่อ">${UI.escape(a.name)}</td>
+              <td data-label="บัญชีกลาง" class="small">${UI.escape(a.accountEmail || '-')}</td>
+              <td data-label="รายชื่อครู" class="small">${UI.escape((a.teacherRoster || []).join(', ') || '-')}</td>
+              <td data-label="สถานะ">${a.active ? '<span class="badge text-bg-success">เปิด</span>' : '<span class="badge text-bg-secondary">ปิด</span>'}</td>
               <td class="text-end"><button class="btn btn-sm btn-outline-secondary" data-edit="${UI.escape(a.areaId)}"><i class="bi bi-pencil"></i></button></td>
             </tr>`).join('')}</tbody>
         </table>
